@@ -1,0 +1,23 @@
+{
+  "name": "subs-manager",
+  "version": "1.0.0",
+  "description": "سامانه مدیریت مشترکین با اعلان انقضای تلگرامی - اجرا روی Container میکروتیک",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "dotenv": "^17.4.2",
+    "ejs": "^6.0.1",
+    "express": "^5.2.1",
+    "express-session": "^1.19.0",
+    "node-cron": "^4.5.0"
+  },
+  "engines": {
+    "node": ">=22.5.0"
+  }
+}

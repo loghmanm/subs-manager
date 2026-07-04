@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
+  <title>ورود | مدیریت مشترکین</title>
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+  <div class="login-page">
+    <div class="login-card">
+      <div class="login-logo">
+        <div class="signal-mark"><i></i><i></i><i></i><i></i></div>
+      </div>
+      <h1 class="login-title">مدیریت مشترکین</h1>
+      <p class="login-sub">برای ورود به پنل، اطلاعات حساب خود را وارد کنید</p>
+
+      <% if (error) { %>
+        <div class="login-alert"><%= error %></div>
+      <% } %>
+
+      <form method="POST" action="/login">
+        <div class="field">
+          <label for="username">نام کاربری</label>
+          <input type="text" id="username" name="username" required autofocus autocomplete="username" />
+        </div>
+        <div class="field">
+          <label for="password">رمز عبور</label>
+          <input type="password" id="password" name="password" required autocomplete="current-password" />
+        </div>
+        <button type="submit" class="btn btn-primary btn-block">ورود</button>
+      </form>
+    </div>
+  </div>
+</body>
+</html>
