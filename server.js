@@ -6,7 +6,7 @@ const crypto = require("crypto");
 
 const db = require("./lib/db");
 const { requireAuth, checkCredentials } = require("./lib/auth");
-const { jalaliStringToISO, isoToJalaliString, daysUntil } = require("./lib/jalali");
+const { jalaliStringToISO, isoToJalaliString, daysUntil, renewIso, todayISO } = require("./lib/jalali");
 const { runExpiryCheck } = require("./lib/scheduler");
 const { sendTelegramMessage } = require("./lib/telegram");
 const { runSeedIfEmpty } = require("./lib/seed");
@@ -249,6 +249,56 @@ app.post("/api/subscribers/:id/monitor", requireAuth, (req, res) => {
 
   const row = db.prepare(`SELECT * FROM subscribers WHERE id = ?`).get(req.params.id);
   res.json(toClient(row));
+});
+
+// تمدید اشتراک مشترک
+app.post("/api/subscribers/:id/renew", requireAuth, (req, res) => {
+  const existing = db.prepare(`SELECT * FROM subscribers WHERE id = ?`).get(req.params.id);
+  if (!existing) return res.status(404).json({ error: "مشترک یافت نشد" });
+
+  const months = parseInt(req.body.months, 10);
+  const basis = req.body.basis; // 'now' | 'expiry'
+
+  if (!months || months < 1 || months > 12) {
+    return res.status(400).json({ error: "تعداد ماه باید بین ۱ تا ۱۲ باشد" });
+  }
+  if (basis !== "now" && basis !== "expiry") {
+    return res.status(400).json({ error: "مبدأ تمدید نامعتبر است" });
+  }
+
+  const baseIso = basis === "now" ? todayISO() : existing.expiry_date;
+  const newExpiry = renewIso(baseIso, months);
+
+  db.prepare(
+    `UPDATE subscribers
+     SET expiry_date = ?, notified_5 = 0, notified_3 = 0, notified_0 = 0, updated_at = datetime('now')
+     WHERE id = ?`
+  ).run(newExpiry, req.params.id);
+
+  db.prepare(
+    `INSERT INTO renewals (subscriber_id_fk, months, basis, old_expiry, new_expiry)
+     VALUES (?, ?, ?, ?, ?)`
+  ).run(req.params.id, months, basis, existing.expiry_date, newExpiry);
+
+  const row = db.prepare(`SELECT * FROM subscribers WHERE id = ?`).get(req.params.id);
+  res.json(toClient(row));
+});
+
+// تاریخچه‌ی تمدیدهای یک مشترک
+app.get("/api/subscribers/:id/renewals", requireAuth, (req, res) => {
+  const rows = db
+    .prepare(`SELECT * FROM renewals WHERE subscriber_id_fk = ? ORDER BY renewed_at DESC`)
+    .all(req.params.id);
+  res.json(
+    rows.map((r) => ({
+      id: r.id,
+      months: r.months,
+      basis: r.basis,
+      old_expiry_jalali: isoToJalaliString(r.old_expiry),
+      new_expiry_jalali: isoToJalaliString(r.new_expiry),
+      renewed_at: r.renewed_at,
+    }))
+  );
 });
 
 // فهرست لیست نظارت
