@@ -138,6 +138,9 @@
           </td>
           <td>
             <div class="row-actions">
+              <button class="btn-icon" data-action="renew" data-id="${s.id}" title="تمدید اشتراک" style="color:var(--teal);border-color:rgba(45,212,191,0.4)">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 019-9 9 9 0 016.36 2.64L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 01-9 9 9 9 0 01-6.36-2.64L3 16"/><path d="M3 21v-5h5"/></svg>
+              </button>
               <button class="btn-icon" data-action="edit" data-id="${s.id}" title="ویرایش">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
               </button>
@@ -228,7 +231,10 @@
     const id = btn.dataset.id;
     const action = btn.dataset.action;
 
-    if (action === "edit") {
+    if (action === "renew") {
+      const sub = allSubscribers.find((s) => String(s.id) === id);
+      openRenewModal(sub);
+    } else if (action === "edit") {
       const sub = allSubscribers.find((s) => String(s.id) === id);
       openModal(sub);
     } else if (action === "delete") {
@@ -278,6 +284,65 @@
     } catch (err) {
       formError.textContent = err.message;
       formError.classList.remove("hidden");
+    }
+  });
+
+  // ---------------------------------------------------------------
+  // مودال تمدید اشتراک
+  // ---------------------------------------------------------------
+  const renewModalOverlay = document.getElementById("renewModalOverlay");
+  const renewForm = document.getElementById("renewForm");
+  let renewingSub = null;
+
+  function updateRenewPreview() {
+    if (!renewingSub) return;
+    const months = parseInt(document.getElementById("renewMonths").value, 10);
+    const basis = document.getElementById("renewBasis").value;
+    const baseIso = basis === "now" ? window.Jalali.todayISO() : renewingSub.expiry_date;
+    const newIso = window.Jalali.renewIso(baseIso, months);
+    document.getElementById("renewPreview").textContent = window.Jalali.isoToJalaliString(newIso);
+  }
+
+  function openRenewModal(sub) {
+    renewingSub = sub;
+    document.getElementById("renewSubId").value = sub.id;
+    document.getElementById("renewSubName").textContent = sub.name;
+    document.getElementById("renewMonths").value = "12";
+    document.getElementById("renewBasis").value = "expiry";
+    document.getElementById("renewCurrentInfo").textContent =
+      `${sub.expiry_date_jalali} (${daysText(sub.days_remaining)})`;
+    updateRenewPreview();
+    renewModalOverlay.classList.remove("hidden");
+  }
+
+  function closeRenewModal() {
+    renewModalOverlay.classList.add("hidden");
+    renewingSub = null;
+  }
+
+  document.getElementById("renewModalClose").addEventListener("click", closeRenewModal);
+  document.getElementById("renewCancel").addEventListener("click", closeRenewModal);
+  renewModalOverlay.addEventListener("click", (e) => {
+    if (e.target === renewModalOverlay) closeRenewModal();
+  });
+  document.getElementById("renewMonths").addEventListener("change", updateRenewPreview);
+  document.getElementById("renewBasis").addEventListener("change", updateRenewPreview);
+
+  renewForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const id = document.getElementById("renewSubId").value;
+    const months = document.getElementById("renewMonths").value;
+    const basis = document.getElementById("renewBasis").value;
+    try {
+      await api(`/api/subscribers/${id}/renew`, {
+        method: "POST",
+        body: JSON.stringify({ months, basis }),
+      });
+      toast("تمدید با موفقیت ثبت شد");
+      closeRenewModal();
+      refreshAll();
+    } catch (err) {
+      toast(err.message, true);
     }
   });
 
