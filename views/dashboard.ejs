@@ -149,6 +149,63 @@
     </div>
   </div>
 
+  <!-- مودال تمدید اشتراک -->
+  <div class="modal-overlay hidden" id="renewModalOverlay">
+    <div class="modal" style="max-width:440px">
+      <div class="modal-header">
+        <div class="modal-title">تمدید اشتراک — <span id="renewSubName"></span></div>
+        <button class="close-x" id="renewModalClose">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <form id="renewForm">
+        <div class="modal-body">
+          <input type="hidden" id="renewSubId" />
+          <div class="field">
+            <label>مدت تمدید</label>
+            <select id="renewMonths">
+              <option value="1">۱ ماه</option>
+              <option value="2">۲ ماه</option>
+              <option value="3">۳ ماه</option>
+              <option value="4">۴ ماه</option>
+              <option value="5">۵ ماه</option>
+              <option value="6">۶ ماه</option>
+              <option value="7">۷ ماه</option>
+              <option value="8">۸ ماه</option>
+              <option value="9">۹ ماه</option>
+              <option value="10">۱۰ ماه</option>
+              <option value="11">۱۱ ماه</option>
+              <option value="12" selected>۱۲ ماه</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>مبدأ محاسبه تمدید</label>
+            <select id="renewBasis">
+              <option value="expiry" selected>از تاریخ پایان انقضای فعلی مشترک</option>
+              <option value="now">از همین امروز</option>
+            </select>
+            <div class="hint">
+              «از پایان انقضای فعلی» یعنی اگر مشترک هنوز اعتبار باقی‌مانده دارد، آن هم حفظ و به دوره جدید اضافه می‌شود.
+              «از همین امروز» یعنی اعتبار باقی‌مانده نادیده گرفته و از امروز شمارش می‌شود.
+            </div>
+          </div>
+          <div class="field">
+            <label>وضعیت فعلی</label>
+            <div class="hint" id="renewCurrentInfo" style="font-size:13px;color:var(--text)">-</div>
+          </div>
+          <div class="field">
+            <label>تاریخ انقضای جدید (پیش‌نمایش)</label>
+            <div class="mono" id="renewPreview" style="font-size:16px;font-weight:600;color:var(--teal)">-</div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-ghost" id="renewCancel">انصراف</button>
+          <button type="submit" class="btn btn-primary">ثبت تمدید</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <div class="toast-wrap" id="toastWrap"></div>
 
   <script src="/js/jalali-client.js"></script>
